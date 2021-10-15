@@ -9,7 +9,7 @@ resources:
 trigger:
  paths:
    include:
-     - AnalyticsRulesARM/*
+     - AnalyticRulesARM/*
 
 stages:
 - stage: build_alert_rules
@@ -23,7 +23,7 @@ stages:
        - task: CopyFiles@2
          displayName: 'Copy Alert Rules'
          inputs:
-          SourceFolder: AnalyticsRulesARM
+          SourceFolder: AnalyticRulesARM
           TargetFolder: '$(Pipeline.Workspace)'
        - task: Files-Validator@1
          inputs:
