@@ -37,3 +37,25 @@ stages:
          inputs:
           PathtoPublish: '$(Pipeline.Workspace)'
           ArtifactName: RulesFile
+
+- stage: deploy_alert_rules
+  jobs:
+    - job: AgentJob
+      pool:
+       name: Azure Pipelines
+       vmImage: 'windows-2019'
+      variables: 
+      - group: madesous-3
+      steps:
+      - download: current
+        artifact: RulesFile
+      - download: Scripts
+        patterns: '*.ps1'
+      - task: AzurePowerShell@4
+        displayName: 'Create and Update Alert Rules'
+        inputs:
+         azureSubscription: 'devopssentinel'
+         ScriptPath: '$(Pipeline.Workspace)/Scripts/Scripts/CreateAnalyticsRules.ps1'
+         ScriptArguments: '-Workspace $(Workspace) -RulesFile analytics-rules.json'
+         azurePowerShellVersion: LatestVersion
+         pwsh: true
