@@ -1,18 +1,16 @@
-# Analytics Rules build and deploy pipeline
-# This pipeline publishes the rules file as an artifact and then uses a powershell task to deploy
-
-name: build and deploy Alert Rules
+name: build and deploy Automation rules
 resources:
  pipelines:
    - pipeline: Scripts
      source: 'scriptsCI'
+
 trigger:
  paths:
    include:
-     - AnalyticsRules/*
+     - Playbooks/*
 
 stages:
-- stage: build_alert_rules
+- stage: build_automationrules
 
   jobs:
     - job: AgentJob
@@ -21,9 +19,9 @@ stages:
        vmImage: 'vs2017-win2016'
       steps:
        - task: CopyFiles@2
-         displayName: 'Copy Alert Rules'
+         displayName: 'Copy Automation rules'
          inputs:
-          SourceFolder: AnalyticsRules
+          SourceFolder: AutomationRules
           TargetFolder: '$(Pipeline.Workspace)'
        - task: Files-Validator@1
          inputs:
@@ -33,7 +31,29 @@ stages:
            validateYAML: false
            validatePS: false
        - task: PublishBuildArtifacts@1
-         displayName: 'Publish Artifact: RulesFile'
+         displayName: 'Publish Artifact: AutomationRules'
          inputs:
           PathtoPublish: '$(Pipeline.Workspace)'
-          ArtifactName: RulesFile
+          ArtifactName: AutomationRules
+
+- stage: deploy_automationrules
+  jobs:
+    - job: AgentJob
+      pool:
+       name: Azure Pipelines
+       vmImage: 'windows-2019'
+      variables: 
+      - group: madesous-3
+      steps:
+      - download: current
+        artifact: AutomationRules
+      - download: Scripts
+        patterns: '*.ps1'
+      - task: AzurePowerShell@4
+        displayName: 'Create and Update AutomationRules'
+        inputs:
+         azureSubscription: 'devopssentinel'
+         ScriptPath: '$(Pipeline.Workspace)/Scripts/Scripts/CreateAutomationRules.ps1'
+         ScriptArguments: '-resourceGroup $(ResourceGroup) -AutomationRulesFolder $(Pipeline.Workspace)/AutomationRules'
+         azurePowerShellVersion: LatestVersion
+         pwsh: true
