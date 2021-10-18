@@ -38,7 +38,7 @@ stages:
           PathtoPublish: '$(Pipeline.Workspace)'
           ArtifactName: RulesFile
 
-- stage: deploy_alert_rules
+- stage: deploy_alert_rules-madesous-3
   jobs:
     - job: AgentJob
       pool:
@@ -64,6 +64,8 @@ stages:
           csmFileLink: 'https://raw.githubusercontent.com/mariavaladas/sentinelascode/master/AnalyticRulesARM/template.json'
           overrideParameters: '-workspace $(Workspace)'
           deploymentMode: 'Incremental'
+- stage: deploy_alert_rules-madesous-4
+  jobs:
     - job: AgentJob
       pool:
        name: Azure Pipelines
@@ -88,6 +90,8 @@ stages:
           csmFileLink: 'https://raw.githubusercontent.com/mariavaladas/sentinelascode/master/AnalyticRulesARM/template.json'
           overrideParameters: '-workspace $(Workspace)'
           deploymentMode: 'Incremental'
+- stage: deploy_alert_rules-madesous-5
+  jobs:
     - job: AgentJob
       pool:
        name: Azure Pipelines
