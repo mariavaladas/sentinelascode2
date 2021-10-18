@@ -1,0 +1,116 @@
+# Analytics Rules build and deploy pipeline
+# This pipeline publishes the rules file as an artifact and then uses a powershell task to deploy
+
+name: build and deploy Alert Rules
+resources:
+ pipelines:
+   - pipeline: Scripts
+     source: 'buildScripts'
+trigger:
+ paths:
+   include:
+     - AnalyticRulesARM/*
+
+stages:
+- stage: build_alert_rules
+
+  jobs:
+    - job: AgentJob
+      pool:
+       name: Azure Pipelines
+       vmImage: 'vs2017-win2016'
+      steps:
+       - task: CopyFiles@2
+         displayName: 'Copy Alert Rules'
+         inputs:
+          SourceFolder: AnalyticRulesARM
+          TargetFolder: '$(Pipeline.Workspace)'
+       - task: Files-Validator@1
+         inputs:
+           rootDir: '$(Pipeline.Workspace)/*.json'
+           validateXML: false
+           validateJSON: true
+           validateYAML: false
+           validatePS: false
+       - task: PublishBuildArtifacts@1
+         displayName: 'Publish Artifact: RulesFile'
+         inputs:
+          PathtoPublish: '$(Pipeline.Workspace)'
+          ArtifactName: RulesFile
+
+- stage: deploy_alert_rules
+  jobs:
+    - job: AgentJob
+      pool:
+       name: Azure Pipelines
+       vmImage: 'windows-2019'
+      variables: 
+      - group: madesous-3
+      steps:
+      - download: current
+        artifact: RulesFile
+      - download: Scripts
+        patterns: '*.ps1'
+      
+      - task: AzureResourceManagerTemplateDeployment@3
+        inputs:
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: 'devopssentinel'
+          subscriptionId: '036f021c-23f2-4483-a1c5-adc28edcabc1'
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: 'cicd'
+          location: 'West Europe'
+          templateLocation: 'URL of the file'
+          csmFileLink: 'https://raw.githubusercontent.com/mariavaladas/sentinelascode/master/AnalyticRulesARM/template.json'
+          overrideParameters: '-workspace $(Workspace)'
+          deploymentMode: 'Incremental'
+    - job: AgentJob
+      pool:
+       name: Azure Pipelines
+       vmImage: 'windows-2019'
+      variables: 
+      - group: madesous-4
+      steps:
+      - download: current
+        artifact: RulesFile
+      - download: Scripts
+        patterns: '*.ps1'
+      
+      - task: AzureResourceManagerTemplateDeployment@3
+        inputs:
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: 'devopssentinel'
+          subscriptionId: '036f021c-23f2-4483-a1c5-adc28edcabc1'
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: 'cicd'
+          location: 'West Europe'
+          templateLocation: 'URL of the file'
+          csmFileLink: 'https://raw.githubusercontent.com/mariavaladas/sentinelascode/master/AnalyticRulesARM/template.json'
+          overrideParameters: '-workspace $(Workspace)'
+          deploymentMode: 'Incremental'
+    - job: AgentJob
+      pool:
+       name: Azure Pipelines
+       vmImage: 'windows-2019'
+      variables: 
+      - group: madesous-5
+      steps:
+      - download: current
+        artifact: RulesFile
+      - download: Scripts
+        patterns: '*.ps1'
+      
+      - task: AzureResourceManagerTemplateDeployment@3
+        inputs:
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: 'devopssentinel'
+          subscriptionId: '036f021c-23f2-4483-a1c5-adc28edcabc1'
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: 'cicd2'
+          location: 'West Europe'
+          templateLocation: 'URL of the file'
+          csmFileLink: 'https://raw.githubusercontent.com/mariavaladas/sentinelascode/master/AnalyticRulesARM/template.json'
+          overrideParameters: '-workspace $(Workspace)'
+          deploymentMode: 'Incremental'
+  
+  
