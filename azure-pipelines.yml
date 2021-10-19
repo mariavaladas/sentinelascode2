@@ -2,7 +2,7 @@ name: build and deploy Automation rules
 resources:
  pipelines:
    - pipeline: Scripts
-     source: 'scriptsCI'
+     source: 'buildScripts'
 
 trigger:
  paths:
