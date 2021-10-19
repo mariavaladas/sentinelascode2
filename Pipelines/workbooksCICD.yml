@@ -1,8 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 name: build and deploy Workbooks
 resources:
  pipelines:
@@ -48,7 +43,7 @@ stages:
        name: Azure Pipelines
        vmImage: 'windows-2019'
       variables: 
-      - group: Az connection settings
+      - group: madesous-3
       steps:
       - download: current
         artifact: Workbooks
@@ -57,7 +52,7 @@ stages:
       - task: AzurePowerShell@4
         displayName: 'Create and Update Workbooks'
         inputs:
-         azureSubscription: 'Soricloud Visual Studio'
+         azureSubscription: 'devopssentinel'
          ScriptPath: '$(Pipeline.Workspace)/Scripts/Scripts/CreateWorkbooks.ps1'
          ScriptArguments: '-SubscriptionId $(SubscriptionId) -ResourceGroup $(ResourceGroup) -Workspace $(Workspace) -WorkbooksFolder $(Pipeline.Workspace)/Workbooks'
          azurePowerShellVersion: LatestVersion
