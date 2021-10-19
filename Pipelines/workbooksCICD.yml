@@ -2,7 +2,7 @@ name: build and deploy Workbooks
 resources:
  pipelines:
    - pipeline: Scripts
-     source: 'scriptsCI'
+     source: 'buildScripts'
 
 trigger:
  paths:
