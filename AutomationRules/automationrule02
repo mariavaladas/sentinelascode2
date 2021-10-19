@@ -1,7 +1,14 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
     "resources": [
         {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/automationRules/aae5f3e7-9b09-4e99-8995-54e283a46665')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/aae5f3e7-9b09-4e99-8995-54e283a46665')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/automationRules",
             "name": "AutomationRule01",
             "apiVersion": "2019-01-01-preview",
