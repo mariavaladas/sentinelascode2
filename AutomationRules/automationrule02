@@ -1,0 +1,61 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "resources": [
+        {
+            "type": "Microsoft.OperationalInsights/workspaces/providers/automationRules",
+            "name": "AutomationRule01",
+            "apiVersion": "2019-01-01-preview",
+            "properties": {
+                "displayName": "AutomationRule01",
+                "order": 2,
+                "triggeringLogic": {
+                    "isEnabled": true,
+                    "expirationTimeUtc": null,
+                    "triggersOn": "Incidents",
+                    "triggersWhen": "Created",
+                    "conditions": [
+                           
+                            {
+                                "conditionType": "Property",
+                                "conditionProperties": {
+                                    "propertyName": "IncidentSeverity",
+                                    "operator": "Equals",
+                                    "propertyValues": [
+                                        "High"
+                                    ]
+                                }
+                            },
+                            {
+                                "conditionType": "Property",
+                                "conditionProperties": {
+                                    "propertyName": "IncidentTactics",
+                                    "operator": "Contains",
+                                    "propertyValues": [
+                                        "InitialAccess",
+                                        "Execution"
+                                    ]
+                                }
+                            }
+
+
+                    ]
+                },
+                "actions": [
+                    
+                    {
+                        "order": 1, 
+                        "actionType": "ModifyProperties", 
+                        "actionConfiguration": {
+                            "labels": [
+                                {
+                                    "labelName": "tag"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}
