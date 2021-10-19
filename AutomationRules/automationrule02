@@ -1,8 +1,22 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
     "parameters": {
         "workspaceName": {
-            "type": "String"
+            "type": "string"
+        },
+        "automationRuleName": {
+            "type": "string"
+        },
+        "ruleGuid": {
+            "type": "string"
+        },
+        "automationRulePlaybookName": {
+            "type": "string"
+        },
+        "playbookRG": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().name]"
         }
     },
     "variables": {
@@ -10,13 +24,11 @@
     },
     "resources": [
         {
-            
-            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('automationRuleGuid'))]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/automationRules",
-            "name": "AutomationRule01",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('automationRuleGuid'))]",
             "apiVersion": "2019-01-01-preview",
             "properties": {
-                "displayName": "AutomationRule01",
+                "displayName": "[parameters('automationRuleName')]",
                 "order": 2,
                 "triggeringLogic": {
                     "isEnabled": true,
@@ -24,7 +36,16 @@
                     "triggersOn": "Incidents",
                     "triggersWhen": "Created",
                     "conditions": [
-                           
+                            {
+                                "conditionType": "Property",
+                                "conditionProperties": {
+                                    "propertyName": "IncidentRelatedAnalyticRuleIds",
+                                    "operator": "Contains",
+                                    "propertyValues": [
+                                        "[resourceId('Microsoft.OperationalInsights/workspaces/providers/alertRules',parameters('workspaceName'),'Microsoft.SecurityInsights',parameters('ruleGuid'))]"
+                                    ]
+                                }
+                            },
                             {
                                 "conditionType": "Property",
                                 "conditionProperties": {
@@ -45,6 +66,16 @@
                                         "Execution"
                                     ]
                                 }
+                            },
+                            {
+                                "conditionType": "Property",
+                                "conditionProperties": {
+                                    "propertyName": "IncidentTitle",
+                                    "operator": "Contains",
+                                    "propertyValues": [
+                                        "urgent"
+                                    ]
+                                }
                             }
 
 
@@ -53,7 +84,16 @@
                 "actions": [
                     
                     {
-                        "order": 1, 
+                        "order": 2,
+                        "actionType": "ModifyProperties",
+                        "actionConfiguration": {
+                            "status": "Closed",
+                            "classification": "Undetermined",
+                            "classificationReason": null
+                        }
+                    },
+                    {
+                        "order": 3, 
                         "actionType": "ModifyProperties", 
                         "actionConfiguration": {
                             "labels": [
