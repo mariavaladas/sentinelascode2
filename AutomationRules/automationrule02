@@ -2,21 +2,8 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "workspaceName": {
-            "type": "string"
-        },
-        "automationRuleName": {
-            "type": "string"
-        },
-        "ruleGuid": {
-            "type": "string"
-        },
-        "automationRulePlaybookName": {
-            "type": "string"
-        },
-        "playbookRG": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().name]"
+        "workspace": {
+            "type": "String"
         }
     },
     "variables": {
@@ -24,6 +11,7 @@
     },
     "resources": [
         {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/aae5f3e7-9b09-4e99-8995-54e283a46686')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/automationRules",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('automationRuleGuid'))]",
             "apiVersion": "2019-01-01-preview",
@@ -82,7 +70,15 @@
                     ]
                 },
                 "actions": [
-                    
+                    {
+                        "order": 1,
+                        "actionType": "RunPlaybook",
+                        "actionConfiguration": {
+                            "triggerUri": null,
+                            "logicAppResourceId": "[resourceId(parameters('playbookRG'),'Microsoft.Logic/workflows',parameters('automationRulePlaybookName'))]",
+                            "tenantId": "[subscription().tenantId]"
+                        }
+                    },
                     {
                         "order": 2,
                         "actionType": "ModifyProperties",
