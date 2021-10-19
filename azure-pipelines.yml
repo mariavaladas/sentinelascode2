@@ -49,11 +49,18 @@ stages:
         artifact: AutomationRules
       - download: Scripts
         patterns: '*.ps1'
-      - task: AzurePowerShell@4
-        displayName: 'Create and Update AutomationRules'
+      - task: AzureResourceManagerTemplateDeployment@3
         inputs:
-         azureSubscription: 'devopssentinel'
-         ScriptPath: '$(Pipeline.Workspace)/Scripts/Scripts/CreateAutomationRules.ps1'
-         ScriptArguments: '-resourceGroup $(ResourceGroup) -AutomationRulesFolder $(Pipeline.Workspace)/AutomationRules'
-         azurePowerShellVersion: LatestVersion
-         pwsh: true
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: 'devopssentinel'
+          subscriptionId: '036f021c-23f2-4483-a1c5-adc28edcabc1'
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: 'cicd'
+          location: 'West Europe'
+          templateLocation: 'URL of the file'
+          csmFileLink: 'https://raw.githubusercontent.com/mariavaladas/sentinelascode/master/AutomationRules/automationrule01'
+          overrideParameters: '-workspace $(Workspace)'
+          deploymentMode: 'Incremental'
+
+
+          
