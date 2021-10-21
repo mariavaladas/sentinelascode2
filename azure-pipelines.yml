@@ -1,4 +1,4 @@
-name: build and deploy Automation rules
+name: build and deploy Playbooks
 resources:
  pipelines:
    - pipeline: Scripts
@@ -7,10 +7,10 @@ resources:
 trigger:
  paths:
    include:
-     - AutomationRules/*
+     - Playbooks/*
 
 stages:
-- stage: build_automationrules
+- stage: build_playbooks
 
   jobs:
     - job: AgentJob
@@ -19,9 +19,9 @@ stages:
        vmImage: 'vs2017-win2016'
       steps:
        - task: CopyFiles@2
-         displayName: 'Copy Automation rules'
+         displayName: 'Copy Playbooks'
          inputs:
-          SourceFolder: AutomationRules
+          SourceFolder: Playbooks
           TargetFolder: '$(Pipeline.Workspace)'
        - task: Files-Validator@1
          inputs:
@@ -31,12 +31,12 @@ stages:
            validateYAML: false
            validatePS: false
        - task: PublishBuildArtifacts@1
-         displayName: 'Publish Artifact: AutomationRules'
+         displayName: 'Publish Artifact: Playbooks'
          inputs:
           PathtoPublish: '$(Pipeline.Workspace)'
-          ArtifactName: AutomationRules
+          ArtifactName: Playbooks
 
-- stage: deploy_automationrules
+- stage: deploy_playbooks
   jobs:
     - job: AgentJob
       pool:
@@ -46,21 +46,14 @@ stages:
       - group: madesous-3
       steps:
       - download: current
-        artifact: AutomationRules
+        artifact: Playbooks
       - download: Scripts
         patterns: '*.ps1'
-      - task: AzureResourceManagerTemplateDeployment@3
+      - task: AzurePowerShell@4
+        displayName: 'Create and Update Playbooks'
         inputs:
-          deploymentScope: 'Resource Group'
-          azureResourceManagerConnection: 'devopssentinel'
-          subscriptionId: '036f021c-23f2-4483-a1c5-adc28edcabc1'
-          action: 'Create Or Update Resource Group'
-          resourceGroupName: 'cicd'
-          location: 'West Europe'
-          templateLocation: 'URL of the file'
-          csmFileLink: 'https://raw.githubusercontent.com/mariavaladas/sentinelascode/master/AutomationRules/automationrule01'
-          overrideParameters: '-workspace $(Workspace)'
-          deploymentMode: 'Incremental'
-
-
-          
+         azureSubscription: 'devopssentinel'
+         ScriptPath: '$(Pipeline.Workspace)/Scripts/Scripts/CreatePlaybooks.ps1'
+         ScriptArguments: '-resourceGroup $(ResourceGroup) -PlaybooksFolder $(Pipeline.Workspace)/Playbooks'
+         azurePowerShellVersion: LatestVersion
+         pwsh: true
