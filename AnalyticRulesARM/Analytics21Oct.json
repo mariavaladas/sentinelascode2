@@ -1,0 +1,328 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspace": {
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/b7afd9b4-4992-48c8-b3ee-e1da8588f074')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/b7afd9b4-4992-48c8-b3ee-e1da8588f074')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-09-01-preview",
+            "properties": {
+                "displayName": "Test 1 TI map IP entity to AzureActivity",
+                "description": "Identifies a match in AzureActivity from any IP IOC from TI",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "let dt_lookBack = 1h;\nlet ioc_lookBack = 14d;\nThreatIntelligenceIndicator\n| where TimeGenerated >= ago(ioc_lookBack) and ExpirationDateTime > now()\n| where Active == true\n// Picking up only IOC's that contain the entities we want\n| where isnotempty(NetworkIP) or isnotempty(EmailSourceIpAddress) or isnotempty(NetworkDestinationIP) or isnotempty(NetworkSourceIP)\n// As there is potentially more than 1 indicator type for matching IP, taking NetworkIP first, then others if that is empty.\n// Taking the first non-empty value based on potential IOC match availability\n| extend TI_ipEntity = iff(isnotempty(NetworkIP), NetworkIP, NetworkDestinationIP)\n| extend TI_ipEntity = iff(isempty(TI_ipEntity) and isnotempty(NetworkSourceIP), NetworkSourceIP, TI_ipEntity)\n| extend TI_ipEntity = iff(isempty(TI_ipEntity) and isnotempty(EmailSourceIpAddress), EmailSourceIpAddress, TI_ipEntity)\n| join (\n    AzureActivity | where TimeGenerated >= ago(dt_lookBack)\n    // renaming time column so it is clear the log this came from\n    | extend AzureActivity_TimeGenerated = TimeGenerated\n)\non $left.TI_ipEntity == $right.CallerIpAddress\n| where AzureActivity_TimeGenerated >= TimeGenerated and AzureActivity_TimeGenerated < ExpirationDateTime\n| summarize LatestIndicatorTime = arg_max(TimeGenerated, *) by IndicatorId\n| project LatestIndicatorTime, Description, ActivityGroupNames, IndicatorId, ThreatType, Url, ExpirationDateTime, ConfidenceScore, AzureActivity_TimeGenerated,\nTI_ipEntity, CallerIpAddress, Caller, OperationNameValue, ActivityStatusValue, CategoryValue, ResourceId, NetworkIP, NetworkDestinationIP, NetworkSourceIP, EmailSourceIpAddress\n| extend timestamp = AzureActivity_TimeGenerated, IPCustomEntity = CallerIpAddress, AccountCustomEntity = Caller, URLCustomEntity = Url",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "P14D",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "Impact"
+                ],
+                "alertRuleTemplateName": "2441bce9-02e4-407b-8cc7-7d597f38b8b0",
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "FullName",
+                                "columnName": "AccountCustomEntity"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "IPCustomEntity"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "URL",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Url",
+                                "columnName": "URLCustomEntity"
+                            }
+                        ]
+                    }
+                ],
+                "templateVersion": "1.0.0"
+            }
+        },
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/e19425a9-3b4b-4092-86ce-f622aaa31bdd')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/e19425a9-3b4b-4092-86ce-f622aaa31bdd')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-09-01-preview",
+            "properties": {
+                "displayName": "Test Alert promotion",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "SigninLogs\r\n| where IPAddress == \"83.60.117.143\"",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "PT5H",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": [],
+                        "groupByCustomDetails": []
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": [
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "IPAddress"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/ce48b266-7b43-43f0-8e6c-3e3f3922d527')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/ce48b266-7b43-43f0-8e6c-3e3f3922d527')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-09-01-preview",
+            "properties": {
+                "displayName": "Two IPs",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "SigninLogs\n| take 10\n| extend IPCustomEntity = IPAddress",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "P1D",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "P1D",
+                        "matchingMethod": "AnyAlert",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": null,
+                        "groupByCustomDetails": null
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": null
+            }
+        },
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/afb95029-6d6d-4434-ba11-a8329d01daca')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/afb95029-6d6d-4434-ba11-a8329d01daca')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-09-01-preview",
+            "properties": {
+                "displayName": "User with failed logons",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "SigninLogs\r\n| where Status.errorCode == 50126 // Invalid Username or password\r\n| project TimeGenerated, Status.failureReason, UserPrincipalName, Status.errorCode, UserId, IPAddress \r\n| sort by TimeGenerated desc\r\n| extend IPCustomEntity = IPAddress\r\n| extend AccountCustomEntity = UserPrincipalName",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "P1D",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 2,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "Selected",
+                        "groupByEntities": [
+                            "Account"
+                        ],
+                        "groupByAlertDetails": null,
+                        "groupByCustomDetails": null
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": null
+            }
+        },
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/d29aa22b-43ae-4c51-bfbe-54d41c0c880a')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/d29aa22b-43ae-4c51-bfbe-54d41c0c880a')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-09-01-preview",
+            "properties": {
+                "displayName": "SigninLogs - Entities and Custom Details test analytic",
+                "description": "",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "SigninLogs\r\n| where AlternateSignInName contains \"admin\"",
+                "queryFrequency": "PT5M",
+                "queryPeriod": "P1D",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [],
+                "alertRuleTemplateName": null,
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": true,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": null,
+                        "groupByCustomDetails": null
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": {
+                    "Country": "Location",
+                    "ResourceGroup": "ResourceGroup",
+                    "ResourceName": "ResourceDisplayName"
+                },
+                "entityMappings": [
+                    {
+                        "entityType": "Account",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Name",
+                                "columnName": "Identity"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "AzureResource",
+                        "fieldMappings": [
+                            {
+                                "identifier": "ResourceId",
+                                "columnName": "AppDisplayName"
+                            }
+                        ]
+                    },
+                    {
+                        "entityType": "IP",
+                        "fieldMappings": [
+                            {
+                                "identifier": "Address",
+                                "columnName": "IPAddress"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/e2650421-047b-44c1-97fb-b1badb711dd7')]",
+            "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/e2650421-047b-44c1-97fb-b1badb711dd7')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+            "kind": "Scheduled",
+            "apiVersion": "2021-09-01-preview",
+            "properties": {
+                "displayName": "(Preview) TI map Domain entity to CommonSecurityLog",
+                "description": "Identifies a match in CommonSecurityLog table from any Domain IOC from TI",
+                "severity": "Medium",
+                "enabled": true,
+                "query": "let dt_lookBack = 1h;\nlet ioc_lookBack = 14d;\n//Create a list of TLDs in our threat feed for later validation of extracted domains\nlet list_tlds = ThreatIntelligenceIndicator\n    | where TimeGenerated > ago(ioc_lookBack)\n    | where isnotempty(DomainName)\n    | extend DomainName = tolower(DomainName)\n    | extend parts = split(DomainName, '.')\n    | extend tld = parts[(array_length(parts)-1)]\n    | summarize count() by tostring(tld)\n    | summarize make_list(tld);\n    ThreatIntelligenceIndicator\n    | where TimeGenerated >= ago(ioc_lookBack) and ExpirationDateTime > now()\n    | summarize LatestIndicatorTime = arg_max(TimeGenerated, *) by IndicatorId\n    | where Active == true\n    // Picking up only IOC's that contain the entities we want\n    | where isnotempty(DomainName)\n    | join (\n        CommonSecurityLog\n        | extend IngestionTime = ingestion_time()\n        | where IngestionTime > ago(dt_lookBack)\n        | where DeviceEventClassID =~ 'url'\n        //Uncomment the line below to only alert on allowed connections\n        //| where DeviceAction !~ \"block-url\"\n        //Extract domain from RequestURL, if not present extarct it from AdditionalExtentions\n        | extend PA_Url = columnifexists(\"RequestURL\", \"None\")\n        | extend PA_Url = iif(isempty(PA_Url) and AdditionalExtensions !startswith \"PanOS\", extract(\"([^\\\"]+)\", 1, tolower(AdditionalExtensions)), trim('\"', PA_Url))\n        | extend PA_Url = iif(PA_Url !startswith \"http://\" and ApplicationProtocol !~ \"ssl\", strcat('http://', PA_Url), iif(PA_Url !startswith \"https://\" and ApplicationProtocol =~ \"ssl\", strcat('https://', PA_Url), PA_Url))\n        | extend Domain = trim(@\"\"\"\",tostring(parse_url(PA_Url).Host))\n        | where isnotempty(Domain)\n        | extend Domain = tolower(Domain)\n        | extend parts = split(Domain, '.')\n        //Split out the TLD for the purpose of checking if we have any TI indicators with this TLD to match on\n        | extend tld = parts[(array_length(parts)-1)]\n        //Validate parsed domain by checking TLD against TLDs from threat feed and drop domains where there is no chance of a match\n        | where tld in~ (list_tlds)\n        | extend CSL_TimeGenerated = TimeGenerated\n    ) on $left.DomainName==$right.Domain\n    | project LatestIndicatorTime, Description, ActivityGroupNames, PA_Url, Domain, IndicatorId, ThreatType, ExpirationDateTime, ConfidenceScore, CSL_TimeGenerated, DeviceAction, DestinationIP, DestinationPort, DeviceName, SourceIP, SourcePort, ApplicationProtocol, RequestMethod\n    | extend timestamp = CSL_TimeGenerated, IPCustomEntity = SourceIP, HostCustomEntity = DeviceName, URLCustomEntity = PA_Url",
+                "queryFrequency": "PT1H",
+                "queryPeriod": "P14D",
+                "triggerOperator": "GreaterThan",
+                "triggerThreshold": 0,
+                "suppressionDuration": "PT5H",
+                "suppressionEnabled": false,
+                "tactics": [
+                    "Impact"
+                ],
+                "alertRuleTemplateName": "dd0a6029-ecef-4507-89c4-fc355ac52111",
+                "incidentConfiguration": {
+                    "createIncident": true,
+                    "groupingConfiguration": {
+                        "enabled": false,
+                        "reopenClosedIncident": false,
+                        "lookbackDuration": "PT5H",
+                        "matchingMethod": "AllEntities",
+                        "groupByEntities": [],
+                        "groupByAlertDetails": null,
+                        "groupByCustomDetails": null
+                    }
+                },
+                "eventGroupingSettings": {
+                    "aggregationKind": "SingleAlert"
+                },
+                "alertDetailsOverride": null,
+                "customDetails": null,
+                "entityMappings": null
+            }
+        }
+    ]
+}
