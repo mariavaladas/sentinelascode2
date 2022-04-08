@@ -55,7 +55,7 @@ stages:
       - task: AzureResourceManagerTemplateDeployment@3
         inputs:
           deploymentScope: 'Resource Group'
-          azureResourceManagerConnection: 'devopssentinel'
+          azureResourceManagerConnection: 'vse'
           subscriptionId: '036f021c-23f2-4483-a1c5-adc28edcabc1'
           action: 'Create Or Update Resource Group'
           resourceGroupName: 'cicd'
