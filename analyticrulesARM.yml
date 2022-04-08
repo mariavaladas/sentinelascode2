@@ -61,6 +61,6 @@ stages:
           resourceGroupName: 'cicd'
           location: 'West Europe'
           templateLocation: 'URL of the file'
-          csmFileLink: 'https://raw.githubusercontent.com/mariavaladas/sentinelascode/master/AnalyticRulesARM/template.json'
+          csmFileLink: 'https://raw.githubusercontent.com/mariavaladas/sentinelascode2/master/AnalyticRulesARM/template.json'
           overrideParameters: '-workspace $(Workspace)'
           deploymentMode: 'Incremental'
